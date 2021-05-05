@@ -75,4 +75,27 @@ $function$
 ;
 
 
+-- возвращает журнал рабочего времени в виде PIVOT-таблицы
+CREATE OR REPLACE FUNCTION public.cctv_get_tabel(integer, integer)
+ RETURNS TABLE(person_name text, person_id integer, d01 numeric, d02 numeric, d03 numeric, d04 numeric, d05 numeric, d06 numeric, d07 numeric, d08 numeric, d09 numeric, d10 numeric, d11 numeric, d12 numeric, d13 numeric, d14 numeric, d15 numeric, d16 numeric, d17 numeric, d18 numeric, d19 numeric, d20 numeric, d21 numeric, d22 numeric, d23 numeric, d24 numeric, d25 numeric, d26 numeric, d27 numeric, d28 numeric, d29 numeric, d30 numeric, d31 numeric)
+ LANGUAGE sql
+AS $function$
+
+select cp.person_name, t.*
+from cctv_person cp  inner join
+(SELECT *
+FROM crosstab(
+  $$select person_id, date_part('day',work_date) as dd, time_in_hours from cctv_person_worktime where date_part('year',work_date)=$$ || $1 || $$ and date_part('month',work_date)=$$|| $2 ||$$ order by 1$$,
+  $$select d from generate_series(1,31) d$$
+) as (
+  person_id int4, "d01" numeric, "d02" numeric, "d03" numeric, "d04" numeric, "d05" numeric, "d06" numeric, "d07" numeric, "d08" numeric, "d09" numeric, "d10" numeric,
+  "d11" numeric, "d12" numeric, "d13" numeric, "d14" numeric, "d15" numeric, "d16" numeric, "d17" numeric, "d18" numeric, "d19" numeric, "d20" numeric,
+  "d21" numeric, "d22" numeric, "d23" numeric, "d24" numeric, "d25" numeric, "d26" numeric, "d27" numeric, "d28" numeric, "d29" numeric, "d30" numeric, "d31" numeric
+)) AS t on cp.person_id =t.person_id 
+order by 1;
+
+$function$
+;
+
+
 
